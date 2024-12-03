@@ -7,29 +7,41 @@
     font-family: 'Montserrat', sans-serif;
 }
 
-body{
-    background-image: url(https://images.crazygames.com/games/2048/cover_16x9-1707828856995.png?auto=format,compress&q=75&cs=strip);
-    background-size: 100% 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
+body {
+    display: flex; /* Sử dụng Flexbox */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    overflow: hidden; /* Bỏ qua cuộn */
+    margin: 0;
+    padding: 0;
     height: 100vh;
+    overflow: hidden;
     
 }
 
-.container{
-    background-color: #fff;
+.background-blur {
+    position: fixed; /* Đặt vị trí cố định */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(https://images.crazygames.com/games/2048/cover_16x9-1707828856995.png?auto=format,compress&q=75&cs=strip);
+    background-size: cover;
+    filter: blur(8px); /* Hiệu ứng mờ */
+    z-index: 0; /* Đặt lớp này dưới cùng */
+}
+
+.container {
+    background-color: rgba(255, 255, 255, 0.9); /* Đặt độ trong suốt cho nền */
     border-radius: 5%;
     box-shadow: 0 5px 15px rgba(213, 203, 131, 0.35);
-    position: relative;
+    position: relative; /* Đặt vị trí tương đối để nằm trên lớp mờ */
     overflow: hidden;
     width: 700px;
     max-width: 100%;
     min-height: 400px;
+    z-index: 1; /* Đặt z-index cao hơn để nằm trên nền */
 }
-
-
 
 .container p{
     font-size: 14px;
@@ -50,7 +62,7 @@ body{
 }
 
 .container button{
-    background-color: #512da8;
+    background-color: #f59f00;
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -166,7 +178,7 @@ body{
 .toggle{
     background-color: #eee;
     height: 100%;
-    background: linear-gradient(to right, #5c6bc0, #512da8);
+    background: linear-gradient(to right, #b27d01, #cdcd00);
     color: #fff;
     position: relative;
     left: -100%;
