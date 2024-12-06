@@ -16,7 +16,7 @@ body {
     padding: 0;
     height: 100vh;
     overflow: hidden;
-    
+    margin-top: 130px; /* Điều chỉnh giá trị này theo ý muốn */
 }
 
 .background-blur {
@@ -27,42 +27,42 @@ body {
     height: 100%;
     background-image: url(https://images.crazygames.com/games/2048/cover_16x9-1707828856995.png?auto=format,compress&q=75&cs=strip);
     background-size: cover;
-    filter: blur(8px); /* Hiệu ứng mờ */
+    background-position: center;
     z-index: 0; /* Đặt lớp này dưới cùng */
 }
 
-.container {
+.container {        /*Ô lớn phần đăng nhập tài khoản*/
     background-color: rgba(255, 255, 255, 0.9); /* Đặt độ trong suốt cho nền */
     border-radius: 5%;
-    box-shadow: 0 5px 15px rgba(213, 203, 131, 0.35);
-    position: relative; /* Đặt vị trí tương đối để nằm trên lớp mờ */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Bóng lớn hơn và đậm hơn */    position: relative; /* Đặt vị trí tương đối để nằm trên lớp mờ */
     overflow: hidden;
     width: 700px;
     max-width: 100%;
     min-height: 400px;
     z-index: 1; /* Đặt z-index cao hơn để nằm trên nền */
+    
 }
 
-.container p{
+.container p{       /*Dòng chú thích nhỏ ở dưới tên project*/
     font-size: 14px;
     line-height: 20px;
     letter-spacing: 0.3px;
     margin: 20px 0;
 }
 
-.container span{
+.container span{        /*Dòng chú thích ngay trên ô nhập email và pass*/
     font-size: 12px;
 }
 
-.container a{
+.container a{       /*Ô Forget pass*/
     color: #333;
     font-size: 13px;
     text-decoration: none;
     margin: 15px 0 10px;
 }
 
-.container button{
-    background-color: #f59f00;
+.container button{      /*Các nút login và signup*/
+    background-color: #bca6ff;
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -75,12 +75,13 @@ body {
     cursor: pointer;
 }
 
-.container button.hidden{
+.container button.hidden{       /*Chỉ riêng nút trong ô màu*/
     background-color: transparent;
     border-color: #fff;
+    
 }
 
-.container form{
+.container form{        /*Ô điền thông tin bên trái trong bảng*/
     background-color: #fff;
     display: flex;
     align-items: center;
@@ -90,7 +91,7 @@ body {
     height: 100%;
 }
 
-.container input{
+.container input{       /*Ô nhập thông tin*/
     background-color: #eee;
     border: none;
     margin: 8px 0;
@@ -178,7 +179,7 @@ body {
 .toggle{
     background-color: #eee;
     height: 100%;
-    background: linear-gradient(to right, #b27d01, #cdcd00);
+    background: linear-gradient(to right, #a88ef7, #87a4e6);
     color: #fff;
     position: relative;
     left: -100%;
@@ -222,4 +223,25 @@ body {
 
 .container.active .toggle-right{
     transform: translateX(200%);
+}
+
+
+.modal {
+    display: none; /* Ẩn modal mặc định */
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Nền mờ */
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 300px; /* Chiều rộng của modal */
+    border-radius: 8px;
 }

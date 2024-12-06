@@ -51,3 +51,47 @@ function loginUser(event) {
         alert('Invalid email or password. Please try again.');
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const resetModal = document.getElementById('resetModal');
+    const closeModal = document.getElementById('closeModal');
+    const forgetPasswordBtn = document.getElementById('forget-password');
+
+    forgetPasswordBtn.addEventListener('click', () => {
+        console.log('Button clicked!');  // Thêm log để kiểm tra
+        resetModal.style.display = "block"; // Hiện modal
+    });
+
+    closeModal.addEventListener('click', () => {
+        resetModal.style.display = "none"; // Đóng modal
+    });
+
+    window.onclick = function(event) {
+        if (event.target == resetModal) {
+            resetModal.style.display = "none"; // Đóng modal khi nhấn ra ngoài
+        }
+    };
+
+    document.getElementById('resetForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const email = document.getElementById('reset-email').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (newPassword === confirmPassword) {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(user => user.email === email);
+
+            if (user) {
+                user.password = newPassword;
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Password has been reset successfully!');
+                resetModal.style.display = "none"; // Đóng modal
+            } else {
+                alert('Email not found.');
+            }
+        } else {
+            alert('Passwords do not match.');
+        }
+    });
+});
