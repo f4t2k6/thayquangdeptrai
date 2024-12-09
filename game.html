@@ -1,0 +1,332 @@
+<!DOCTYPE html> <!-- Khai báo tài liệu là HTML5 -->
+<html lang="en"> <!-- Mở thẻ HTML với ngôn ngữ là tiếng Anh -->
+<head> <!-- Mở thẻ head để chứa các thông tin meta và tài nguyên -->
+    <meta charset="UTF-8"> <!-- Khai báo bộ ký tự UTF-8 để hỗ trợ đa ngôn ngữ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Cài đặt để trang web tương thích với thiết bị di động -->
+    <title>2048 Game</title> <!-- Tiêu đề của trang web -->
+    <style> <!-- Phong cách CSS được định nghĩa bên trong thẻ style -->
+    /* Phong cách cho phần thân của trang, bao gồm font chữ và nền */
+    body {
+        font-family: Arial, sans-serif; /* Cài đặt font chữ cho toàn bộ trang */
+        background: linear-gradient(45deg, #ff9a9e, #fad0c4); /* Nền gradient màu hồng */
+        display: flex; /* Sử dụng Flexbox để căn giữa các phần tử */
+        flex-direction: column; /* Sắp xếp các phần tử theo chiều dọc */
+        align-items: center; /* Căn giữa các phần tử theo chiều ngang */
+        justify-content: center; /* Căn giữa các phần tử theo chiều dọc */
+        height: 100vh; /* Chiều cao của phần tử body chiếm toàn bộ màn hình */
+        margin: 0; /* Loại bỏ khoảng cách mặc định của body */
+    }
+
+    /* Phong cách cho canvas nơi trò chơi được vẽ */
+    canvas {
+        border: 5px solid #bbada0; /* Viền cho canvas */
+        background-color: #bbada0; /* Màu nền cho canvas */
+        display: block; /* Đảm bảo canvas là phần tử block */
+    }
+
+    /* Phong cách cho phần chứa điểm số, điểm cao và cấp độ */
+    .score-container {
+        font-size: 24px; /* Kích thước font cho các thông tin điểm */
+        font-weight: bold; /* Làm đậm các thông tin điểm */
+        color: #776e65; /* Màu sắc mặc định cho các thông tin điểm */
+        margin-bottom: 20px; /* Khoảng cách dưới phần điểm */
+    }
+
+    /* Màu sắc cho điểm số hiện tại */
+    #score {
+        color: #ff6347; /* Màu đỏ cho điểm hiện tại */
+    }
+
+    /* Màu sắc cho điểm cao nhất */
+    #highScore {
+        color: #32cd32; /* Màu xanh lá cho điểm cao nhất */
+    }
+
+    /* Màu sắc cho cấp độ (rank) */
+    #rank {
+        color: #1e90ff; /* Màu xanh dương cho cấp độ */
+    }
+
+    /* Phong cách cho phần chứa các nút bấm (Undo và Restart) */
+    .button-container {
+        margin-top: 20px; /* Khoảng cách phía trên phần nút */
+        display: flex; /* Sử dụng flexbox để căn chỉnh các nút */
+        gap: 10px; /* Khoảng cách giữa các nút */
+    }
+
+    /* Phong cách cho các nút bấm */
+    button {
+        padding: 10px 20px; /* Khoảng cách trong các nút */
+        font-size: 16px; /* Kích thước font chữ của các nút */
+        cursor: pointer; /* Đổi con trỏ thành dạng pointer khi rê chuột vào nút */
+        border: none; /* Loại bỏ viền của nút */
+        border-radius: 5px; /* Bo góc các nút */
+        background-color: #8f7a66; /* Màu nền mặc định cho các nút */
+        color: white; /* Màu chữ trắng cho các nút */
+    }
+
+    /* Hiệu ứng khi rê chuột qua các nút */
+    button:hover {
+        background-color: #766357; /* Đổi màu nền khi rê chuột vào nút */
+    }
+</style>
+</head>
+<body> <!-- Mở thẻ body để chứa nội dung của trang web -->
+    <!-- Hiển thị thông tin điểm số, điểm cao và cấp độ -->
+    <div class="score-container">
+        <div>Score: <span id="score">0</span></div> <!-- Hiển thị điểm hiện tại -->
+        <div>High Score: <span id="highScore">0</span></div> <!-- Hiển thị điểm cao nhất -->
+        <div>Rank: <span id="rank">Beginner</span></div> <!-- Hiển thị cấp độ -->
+    </div>
+    
+    <!-- Vùng canvas để vẽ game 2048 -->
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    
+    <!-- Các nút điều khiển trò chơi -->
+    <div class="button-container">
+        <button id="undoButton">Undo</button> <!-- Nút Undo (hoàn tác) -->
+        <button id="restartButton">Restart</button> <!-- Nút Restart (khởi động lại) -->
+    </div>
+
+    <script> <!-- Mở thẻ script để chứa mã JavaScript -->
+        /* Kích thước và các tham số liên quan đến trò chơi */
+        const SIZE = 4; /* Số lượng ô trong một dòng hoặc cột */
+        const TILE_SIZE = 80; /* Kích thước của từng ô vuông */
+        const TILE_GAP = 10; /* Khoảng cách giữa các ô */
+        const GAME_SIZE = SIZE * TILE_SIZE + (SIZE + 1) * TILE_GAP; /* Tổng kích thước của board trò chơi */
+
+        /* Lấy đối tượng canvas và ngữ cảnh vẽ */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        /* Lấy các phần tử HTML để hiển thị điểm số, điểm cao, và cấp độ */
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const rankElement = document.getElementById('rank');
+
+        /* Màu sắc của các ô tùy theo giá trị */
+        const TILE_COLORS = {
+            0: '#cdc1b4',
+            2: '#eee4da',
+            4: '#ede0c8',
+            8: '#f2b179',
+            16: '#f59563',
+            32: '#f67c5f',
+            64: '#f65e3b',
+            128: '#edcf72',
+            256: '#edcc61',
+            512: '#edc850',
+            1024: '#edc53f',
+            2048: '#edc22e',
+        };
+
+        /* Lớp Game2048 để quản lý các hành động và trạng thái của trò chơi */
+        class Game2048 {
+            constructor() {
+                /* Khởi tạo bảng game (board) với các ô có giá trị 0 */
+                this.board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+                this.previousBoard = null; /* Lưu trạng thái bảng trước đó để hoàn tác */
+                this.score = 0; /* Điểm hiện tại */
+                this.highScore = parseInt(localStorage.getItem('highScore')) || 0; /* Điểm cao nhất được lưu trong localStorage */
+                this.previousScore = 0; /* Lưu điểm trước đó để hoàn tác */
+                this.rank = this.getRank(this.score); /* Lấy cấp độ hiện tại dựa trên điểm */
+                this.startTime = Date.now(); /* Lưu thời gian bắt đầu trò chơi */
+                this.addRandomTile(); /* Thêm một ô ngẫu nhiên vào bảng */
+                this.addRandomTile(); /* Thêm một ô ngẫu nhiên vào bảng */
+                this.draw(); /* Vẽ bảng lên canvas */
+                this.updateScore(); /* Cập nhật điểm số */
+                this.updateHighScore(); /* Cập nhật điểm cao nhất */
+            }
+
+            /* Lưu trạng thái hiện tại để có thể hoàn tác */
+            saveState() {
+                this.previousBoard = this.board.map(row => [...row]);
+                this.previousScore = this.score;
+            }
+
+            /* Hoàn tác thao tác (quay lại trạng thái trước) */
+            undo() {
+                if (this.previousBoard) {
+                    this.board = this.previousBoard.map(row => [...row]);
+                    this.score = this.previousScore;
+                    this.previousBoard = null; /* Xóa trạng thái trước khi hoàn tác */
+                    this.draw(); /* Vẽ lại bảng */
+                    this.updateScore(); /* Cập nhật điểm */
+                }
+            }
+
+            /* Khởi động lại trò chơi */
+            reset() {
+                this.board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+                this.previousBoard = null;
+                this.score = 0;
+                this.rank = this.getRank(this.score);
+                this.startTime = Date.now();
+                this.addRandomTile();
+                this.addRandomTile();
+                this.draw();
+                this.updateScore();
+            }
+
+            /* Thêm một ô ngẫu nhiên vào bảng */
+            addRandomTile() {
+                const emptyTiles = [];
+                for (let i = 0; i < SIZE; i++) {
+                    for (let j = 0; j < SIZE; j++) {
+                        if (this.board[i][j] === 0) emptyTiles.push([i, j]);
+                    }
+                }
+                if (emptyTiles.length > 0) {
+                    const [x, y] = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+                    this.board[x][y] = Math.random() < 0.9 ? 2 : 4;
+                }
+            }
+
+            /* Xử lý di chuyển theo các hướng */
+            move(direction) {
+                this.saveState();
+                if (direction === 'UP') {
+                    this.transpose();
+                    this.moveLeft();
+                    this.transpose();
+                } else if (direction === 'DOWN') {
+                    this.transpose();
+                    this.moveRight();
+                    this.transpose();
+                } else if (direction === 'LEFT') {
+                    this.moveLeft();
+                } else if (direction === 'RIGHT') {
+                    this.moveRight();
+                }
+                this.addRandomTile();
+                this.draw();
+                this.updateScore();
+                if (this.checkGameOver()) {
+                    this.showGameOverMessage();
+                }
+            }
+
+            /* Di chuyển và hợp nhất các ô trong một hàng theo hướng trái */
+            moveLeft() {
+                for (let i = 0; i < SIZE; i++) {
+                    this.board[i] = this.merge(this.board[i]);
+                }
+            }
+
+            /* Di chuyển và hợp nhất các ô trong một hàng theo hướng phải */
+            moveRight() {
+                for (let i = 0; i < SIZE; i++) {
+                    this.board[i] = this.merge(this.board[i].reverse()).reverse();
+                }
+            }
+
+            /* Hợp nhất các ô trong một hàng */
+            merge(row) {
+                const newRow = row.filter(value => value !== 0); /* Lọc các ô có giá trị khác 0 */
+                for (let i = 0; i < newRow.length - 1; i++) {
+                    if (newRow[i] === newRow[i + 1]) { /* Nếu 2 ô bằng nhau thì hợp nhất chúng */
+                        newRow[i] *= 2; /* Nhân đôi giá trị */
+                        this.score += newRow[i]; /* Cập nhật điểm */
+                        newRow.splice(i + 1, 1); /* Xóa ô đã hợp nhất */
+                        newRow.push(0); /* Thêm ô trống vào cuối hàng */
+                    }
+                }
+                while (newRow.length < SIZE) {
+                    newRow.push(0); /* Đảm bảo hàng có đủ số ô */
+                }
+                return newRow;
+            }
+
+            /* Hoán đổi các hàng thành cột và ngược lại */
+            transpose() {
+                this.board = this.board[0].map((_, colIndex) => this.board.map(row => row[colIndex]));
+            }
+
+            /* Vẽ bảng game lên canvas */
+            draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height); /* Xóa bảng cũ */
+                ctx.fillStyle = '#bbada0';
+                ctx.fillRect(0, 0, GAME_SIZE, GAME_SIZE); /* Vẽ nền bảng */
+                
+                /* Vẽ các ô game */
+                for (let i = 0; i < SIZE; i++) {
+                    for (let j = 0; j < SIZE; j++) {
+                        const tileValue = this.board[i][j];
+                        const x = j * (TILE_SIZE + TILE_GAP) + TILE_GAP;
+                        const y = i * (TILE_SIZE + TILE_GAP) + TILE_GAP;
+                        ctx.fillStyle = TILE_COLORS[tileValue] || '#cdc1b4';
+                        ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+                        /* Vẽ số trong ô */
+                        if (tileValue !== 0) {
+                            ctx.fillStyle = '#776e65';
+                            ctx.font = 'bold 30px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(tileValue, x + TILE_SIZE / 2, y + TILE_SIZE / 2);
+                        }
+                    }
+                }
+            }
+
+            /* Cập nhật điểm hiện tại */
+            updateScore() {
+                scoreElement.textContent = this.score;
+                this.rank = this.getRank(this.score);
+                rankElement.textContent = this.rank;
+            }
+
+            /* Cập nhật điểm cao nhất */
+            updateHighScore() {
+                if (this.score > this.highScore) {
+                    this.highScore = this.score;
+                    localStorage.setItem('highScore', this.highScore);
+                }
+                highScoreElement.textContent = this.highScore;
+            }
+
+            /* Kiểm tra xem trò chơi có kết thúc không */
+            checkGameOver() {
+                for (let i = 0; i < SIZE; i++) {
+                    for (let j = 0; j < SIZE; j++) {
+                        if (this.board[i][j] === 0) return false; /* Nếu có ô trống thì chưa kết thúc */
+                        if (i > 0 && this.board[i][j] === this.board[i - 1][j]) return false; /* Nếu có ô giống nhau theo chiều dọc */
+                        if (j > 0 && this.board[i][j] === this.board[i][j - 1]) return false; /* Nếu có ô giống nhau theo chiều ngang */
+                    }
+                }
+                return true; /* Nếu không còn di chuyển thì trò chơi kết thúc */
+            }
+
+            /* Lấy cấp độ của người chơi dựa trên điểm */
+            getRank(score) {
+                if (score <= 500) return 'Beginner';
+                if (score <= 1000) return 'Intermediate';
+                if (score <= 2000) return 'Advanced';
+                return 'Master';
+            }
+
+            /* Hiển thị thông báo game over */
+            showGameOverMessage() {
+                alert('Game Over!'); /* Hiển thị thông báo khi trò chơi kết thúc */
+            }
+        }
+
+        /* Khởi tạo trò chơi */
+        const game = new Game2048();
+
+        /* Xử lý sự kiện khi nhấn nút Undo */
+        document.getElementById('undoButton').addEventListener('click', () => game.undo());
+
+        /* Xử lý sự kiện khi nhấn nút Restart */
+        document.getElementById('restartButton').addEventListener('click', () => game.reset());
+
+        /* Xử lý các phím di chuyển */
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') game.move('UP');
+            if (e.key === 'ArrowDown') game.move('DOWN');
+            if (e.key === 'ArrowLeft') game.move('LEFT');
+            if (e.key === 'ArrowRight') game.move('RIGHT');
+        });
+    </script>
+</body>
+</html>
