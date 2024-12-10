@@ -28,6 +28,7 @@ function registerUser(event) {
         // Lưu thông tin người dùng vào localStorage
         existingUser.push({ name, email, password });
         localStorage.setItem('users', JSON.stringify(existingUser));
+        localStorage.setItem(`${name}_highScore`, 0); // Khởi tạo điểm số cao nhất cho tài khoản mới
         alert('Registration successful! You can now sign in.');
     }
 }
@@ -35,22 +36,25 @@ function registerUser(event) {
 function loginUser(event) {
     event.preventDefault(); // Ngăn chặn form gửi đi
 
-    // Lấy thông tin từ form
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    // Kiểm tra thông tin đăng nhập
     const users = JSON.parse(localStorage.getItem('users')) || [];
     const user = users.find(user => user.email === email && user.password === password);
 
     if (user) {
+        localStorage.setItem('currentUser', JSON.stringify({ name: user.name }));
+
+        // Khôi phục điểm số cao nhất cho tài khoản này
+        highScore = localStorage.getItem(`${user.name}_highScore`) ? parseInt(localStorage.getItem(`${user.name}_highScore`)) : 0;
+
         alert(`Welcome back, ${user.name}!`);
-        // Chuyển hướng tới trang trò chơi hoặc trang chính
         window.location.href = 'game.html'; // Thay đổi đường dẫn theo trang chính của bạn
     } else {
         alert('Invalid email or password. Please try again.');
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const resetModal = document.getElementById('resetModal');
